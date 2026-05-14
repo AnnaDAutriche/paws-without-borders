@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "267415198748",
+    "project_id": "paws-without-borders",
+    "storage_bucket": "paws-without-borders.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:267415198748:android:859160db5d67f6fd1c93d9",
+        "android_client_info": {
+          "package_name": "com.anna.pawswithoutborders"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "267415198748-o3bseq3a9giv1lrf9q7rv4f2tetmrdka.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_ACluqH7KGCmKMtCIrX_qvgp5ewMay-A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "267415198748-o3bseq3a9giv1lrf9q7rv4f2tetmrdka.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "267415198748-0embd266psgsbc8liegq7knk9m886rct.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.anna.pawswithoutborders",
+                "app_store_id": "6761343346"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
