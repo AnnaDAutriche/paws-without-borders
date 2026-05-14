@@ -1,0 +1,12 @@
+name: Encode Keystore
+
+on:
+  workflow_dispatch:
+
+jobs:
+  encode:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Convert to base64
+        run: base64 -w 0 upload-keystore.jks
