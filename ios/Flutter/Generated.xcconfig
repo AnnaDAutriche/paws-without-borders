@@ -1,0 +1,14 @@
+// This is a generated file; do not edit or check into version control.
+FLUTTER_ROOT=C:\Users\hbuzuk\flutter\flutter
+FLUTTER_APPLICATION_PATH=C:\Users\hbuzuk\Downloads\users_x6ruf8KmnKd3ZeddynRUABsjn8D3_e2908e50-f411-49e2-8de4-e1f10a8c57e4-2wUznLns7bwnIH57DdOR_project (3)
+COCOAPODS_PARALLEL_CODE_SIGN=true
+FLUTTER_TARGET=lib\main.dart
+FLUTTER_BUILD_DIR=build
+FLUTTER_BUILD_NAME=1.0.0
+FLUTTER_BUILD_NUMBER=1.0.0
+EXCLUDED_ARCHS[sdk=iphonesimulator*]=i386
+EXCLUDED_ARCHS[sdk=iphoneos*]=armv7
+DART_OBFUSCATION=false
+TRACK_WIDGET_CREATION=true
+TREE_SHAKE_ICONS=false
+PACKAGE_CONFIG=.dart_tool/package_config.json
