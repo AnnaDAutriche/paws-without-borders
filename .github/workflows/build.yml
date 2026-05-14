@@ -1,13 +1,51 @@
-- name: Restore keystore
-  run: |
-    echo "${{ secrets.UPLOAD_KEYSTORE_B64 }}" | base64 -d > android/upload-keystore.jks
+name: Build Android AAB
 
-    cat > android/key.properties << EOF
-    storeFile=upload-keystore.jks
-    storePassword=${{ secrets.UPLOAD_STORE_PASSWORD }}
-    keyPassword=${{ secrets.UPLOAD_KEY_PASSWORD }}
-    keyAlias=${{ secrets.UPLOAD_KEY_ALIAS }}
-    EOF
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
-- name: Build AppBundle (release)
-  run: flutter build appbundle --release
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.41.9"
+          channel: stable
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Restore keystore
+        run: |
+          echo "${{ secrets.UPLOAD_KEYSTORE_B64 }}" | base64 -d > android/upload-keystore.jks
+
+          cat > android/key.properties << EOF
+          storeFile=upload-keystore.jks
+          storePassword=${{ secrets.UPLOAD_STORE_PASSWORD }}
+          keyPassword=${{ secrets.UPLOAD_KEY_PASSWORD }}
+          keyAlias=${{ secrets.UPLOAD_KEY_ALIAS }}
+          EOF
+
+      - name: Build release AAB
+        run: flutter build appbundle --release
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: build/app/outputs/bundle/release/app-release.aab
