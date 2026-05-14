@@ -32,8 +32,36 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # --- Signing setup (THIS is what fixes the debug-signing / missing keystore issue) ---
-      - name: Restore keystore + key.properties
+      - name: Restore keystore + key.properties (release signing)
         shell: bash
         run: |
-          # Decode keystore from GitHub Secret into android/app (Gradle signing expects it there)
+          # Decode keystore from GitHub Secret into android/app (Gradle expects it here)
+          echo "${{ secrets.UPLOAD_KEYSTORE_B64 }}" | base64 -d > android/app/upload-keystore.jks
+
+          # Create key.properties used by android/app/build.gradle
+          cat > android/key.properties << EOF
+          storeFile=upload-keystore.jks
+          storePassword=${{ secrets.UPLOAD_STORE_PASSWORD }}
+          keyPassword=${{ secrets.UPLOAD_KEY_PASSWORD }}
+          keyAlias=${{ secrets.UPLOAD_KEY_ALIAS }}
+          EOF
+
+          # Sanity checks (fail early if missing)
+          test -f android/app/upload-keystore.jks
+          test -f android/key.properties
+
+      - name: Build release AAB
+        run: flutter build appbundle --release
+
+      - name: Verify AAB exists (debug output)
+        shell: bash
+        run: |
+          ls -la build/app/outputs/bundle || true
+          ls -la build/app/outputs/bundle/release || true
+          test -f build/app/outputs/bundle/release/app-release.aab
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
