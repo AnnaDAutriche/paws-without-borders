@@ -37,6 +37,7 @@ jobs:
     mkdir -p ~/.android
     echo '{}' > ~/.android/debug.keystore
     flutter build appbundle --release --no-shrink --no-tree-shake-icons
+``
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
