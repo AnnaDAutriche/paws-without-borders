@@ -33,13 +33,14 @@ jobs:
         run: flutter pub get
 
       - name: Build AppBundle (signed)
-  run: |
-    mkdir -p ~/.android
-    echo '{}' > ~/.android/debug.keystore
-    flutter build appbundle --release --no-shrink --no-tree-shake-icons
+        run: |
+          mkdir -p ~/.android
+          echo '{}' > ~/.android/debug.keystore
+          flutter build appbundle --release --no-shrink --no-tree-shake-icons
 
-     - name: Upload artifact
-  uses: actions/upload-artifact@v4
-  with:
-    name: app-release-aab
-    path: build/app/outputs/bundle/release/app-release.aab
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+``
