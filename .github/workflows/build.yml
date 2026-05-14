@@ -32,8 +32,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build AppBundle
-        run: flutter build appbundle --release
+      - name: Build AppBundle (signed)
+  run: |
+    mkdir -p ~/.android
+    echo '{}' > ~/.android/debug.keystore
+    flutter build appbundle --release --no-shrink --no-tree-shake-icons
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
