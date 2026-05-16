@@ -23,22 +23,19 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.41.9"
-          channel: stable
-          cache: true
-
-      - name: Flutter doctor (for logs)
-        run: flutter doctor -v
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Restore keystore + key.properties (release signing)
-        shell: bash
+      # ✅ FIX: regenerate Android project
+      - name: Fix Android project structure
+        run: flutter create .
+
+      # ✅ Restore keystore
+      - name: Restore keystore
         run: |
-          # Decode keystore from GitHub Secret into android/app (Gradle expects it here)
           echo "${{ secrets.UPLOAD_KEYSTORE_B64 }}" | base64 -d > android/app/upload-keystore.jks
 
-          # Create key.properties used by android/app/build.gradle
           cat > android/key.properties << EOF
           storeFile=upload-keystore.jks
           storePassword=${{ secrets.UPLOAD_STORE_PASSWORD }}
@@ -46,22 +43,11 @@ jobs:
           keyAlias=${{ secrets.UPLOAD_KEY_ALIAS }}
           EOF
 
-          # Sanity checks (fail early if missing)
-          test -f android/app/upload-keystore.jks
-          test -f android/key.properties
-
-      - name: Build release AAB
+      - name: Build AAB
         run: flutter build appbundle --release
 
-      - name: Verify AAB exists (debug output)
-        shell: bash
-        run: |
-          ls -la build/app/outputs/bundle || true
-          ls -la build/app/outputs/bundle/release || true
-          test -f build/app/outputs/bundle/release/app-release.aab
-
-      - name: Upload AAB artifact
+      - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-aab
+          name: app-release
           path: build/app/outputs/bundle/release/app-release.aab
