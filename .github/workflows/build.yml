@@ -2,12 +2,19 @@ name: Build Android AAB (Release Signed)
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
-  build:
+  build-android:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    env:
+      PACKAGE_NAME: com.anna.pawswithoutborders
 
     steps:
       - name: Checkout repository
@@ -19,36 +26,29 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Install Flutter
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.41.9"
           channel: stable
           cache: true
 
-      - name: Sanity check project root
-        shell: bash
-        run: |
-          echo "PWD=$(pwd)"
-          ls -la
-          test -f pubspec.yaml
+      - name: Flutter version
+        run: flutter --version
 
-      - name: Install Dart dependencies
+      - name: Clean project
+        run: flutter clean
+
+      - name: Install dependencies
         run: flutter pub get
 
-      # ✅ Fix for: "Your app is using an unsupported Gradle project"
-      # Flutter itself recommends regenerating the Android project structure.
-      - name: Regenerate Android project structure
-        run: flutter create .
-
-      - name: Restore keystore + key.properties
+      - name: Restore Android signing files
         shell: bash
         run: |
-          # Decode keystore from GitHub Secret into android/app (Gradle expects it there)
-          echo "${{ secrets.UPLOAD_KEYSTORE_B64 }}" | base64 -d > android/app/upload-keystore.jks
+          mkdir -p android/app
 
-          # Create android/key.properties used by android/app/build.gradle
-          cat > android/key.properties << EOF
+          echo "${{ secrets.UPLOAD_KEYSTORE_B64 }}" | base64 --decode > android/app/upload-keystore.jks
+
+          cat > android/key.properties <<EOF
           storeFile=upload-keystore.jks
           storePassword=${{ secrets.UPLOAD_STORE_PASSWORD }}
           keyPassword=${{ secrets.UPLOAD_KEY_PASSWORD }}
@@ -58,80 +58,32 @@ jobs:
           test -f android/app/upload-keystore.jks
           test -f android/key.properties
 
-      # ✅ Re-apply a known-good android/app/build.gradle so release signing never falls back to debug
-      - name: Write android/app/build.gradle (release-safe)
+      - name: Restore google-services.json (if Firebase is used)
         shell: bash
         run: |
-          cat > android/app/build.gradle << 'EOF'
-          plugins {
-              id "com.android.application"
-              id "com.google.gms.google-services"
-              id "kotlin-android"
-              id "dev.flutter.flutter-gradle-plugin"
-          }
+          if [ -n "${{ secrets.GOOGLE_SERVICES_JSON_B64 }}" ]; then
+            echo "${{ secrets.GOOGLE_SERVICES_JSON_B64 }}" | base64 --decode > android/app/google-services.json
+            test -f android/app/google-services.json
+            echo "google-services.json restored"
+          else
+            echo "GOOGLE_SERVICES_JSON_B64 not set - skipping"
+          fi
 
-          def keystoreProperties = new Properties()
-          def keystorePropertiesFile = rootProject.file("key.properties")
-          if (keystorePropertiesFile.exists()) {
-              keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-          }
+      - name: Verify important Android files
+        shell: bash
+        run: |
+          echo "Listing android directory"
+          ls -la android
+          echo "Listing android/app directory"
+          ls -la android/app
 
-          android {
-              namespace = "com.anna.pawswithoutborders"
-              compileSdk = flutter.compileSdkVersion
-              ndkVersion = "27.0.12077973"
-
-              compileOptions {
-                  sourceCompatibility = JavaVersion.VERSION_11
-                  targetCompatibility = JavaVersion.VERSION_11
-              }
-
-              kotlinOptions {
-                  jvmTarget = JavaVersion.VERSION_11.toString()
-              }
-
-              signingConfigs {
-                  release {
-                      if (keystorePropertiesFile.exists()) {
-                          keyAlias keystoreProperties["keyAlias"]
-                          keyPassword keystoreProperties["keyPassword"]
-                          storeFile keystoreProperties["storeFile"] ? file(keystoreProperties["storeFile"]) : null
-                          storePassword keystoreProperties["storePassword"]
-                      }
-                  }
-              }
-
-              defaultConfig {
-                  applicationId "com.anna.pawswithoutborders"
-                  minSdk = flutter.minSdkVersion
-                  targetSdk = flutter.targetSdkVersion
-
-                  // IMPORTANT: bump versionCode for every Play upload
-                  versionCode 3
-                  versionName "1.0.2"
-              }
-
-              buildTypes {
-                  release {
-                      signingConfig signingConfigs.release
-                      minifyEnabled false
-                      shrinkResources false
-                  }
-              }
-          }
-
-          flutter {
-              source = "../.."
-          }
-          EOF
-
-      - name: Build release AAB
-        run: flutter build appbundle --release
+      - name: Build signed release AAB
+        run: flutter build appbundle --release --build-number=${{ github.run_number }}
 
       - name: Verify AAB exists
         shell: bash
         run: |
-          ls -la build/app/outputs/bundle/release || true
+          ls -la build/app/outputs/bundle/release
           test -f build/app/outputs/bundle/release/app-release.aab
 
       - name: Upload AAB artifact
@@ -139,3 +91,4 @@ jobs:
         with:
           name: app-release-aab
           path: build/app/outputs/bundle/release/app-release.aab
+``
