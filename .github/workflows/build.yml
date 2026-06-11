@@ -13,9 +13,6 @@ jobs:
     permissions:
       contents: read
 
-    env:
-      PACKAGE_NAME: com.anna.pawswithoutborders
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -32,7 +29,7 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Flutter version
+      - name: Show Flutter version
         run: flutter --version
 
       - name: Clean project
@@ -45,11 +42,10 @@ jobs:
         shell: bash
         run: |
           mkdir -p android/app
-
           echo "${{ secrets.UPLOAD_KEYSTORE_B64 }}" | base64 --decode > android/app/upload-keystore.jks
 
           cat > android/key.properties <<EOF
-          storeFile=upload-keystore.jks
+          storeFile=../app/upload-keystore.jks
           storePassword=${{ secrets.UPLOAD_STORE_PASSWORD }}
           keyPassword=${{ secrets.UPLOAD_KEY_PASSWORD }}
           keyAlias=${{ secrets.UPLOAD_KEY_ALIAS }}
@@ -58,23 +54,16 @@ jobs:
           test -f android/app/upload-keystore.jks
           test -f android/key.properties
 
-      - name: Restore google-services.json (if Firebase is used)
+      - name: Restore google-services.json
         shell: bash
         run: |
-          if [ -n "${{ secrets.GOOGLE_SERVICES_JSON_B64 }}" ]; then
-            echo "${{ secrets.GOOGLE_SERVICES_JSON_B64 }}" | base64 --decode > android/app/google-services.json
-            test -f android/app/google-services.json
-            echo "google-services.json restored"
-          else
-            echo "GOOGLE_SERVICES_JSON_B64 not set - skipping"
-          fi
+          echo "${{ secrets.GOOGLE_SERVICES_JSON_B64 }}" | base64 --decode > android/app/google-services.json
+          test -f android/app/google-services.json
 
-      - name: Verify important Android files
+      - name: Verify Android files
         shell: bash
         run: |
-          echo "Listing android directory"
           ls -la android
-          echo "Listing android/app directory"
           ls -la android/app
 
       - name: Build signed release AAB
@@ -91,4 +80,3 @@ jobs:
         with:
           name: app-release-aab
           path: build/app/outputs/bundle/release/app-release.aab
-``
