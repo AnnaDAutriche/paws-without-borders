@@ -52,7 +52,7 @@ android {
 
         // First Google Play release: explicit, stable identity + versioning.
         // (Flutter would derive these from pubspec.yaml, but pinning here avoids CI/tooling drift.)
-        versionCode 4
+        versionCode 5
         versionName "1.0.1"
     }
 
