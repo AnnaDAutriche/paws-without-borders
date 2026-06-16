@@ -1,4 +1,4 @@
-package com.mycompany.CounterApp
+package package com.anna.pawswithoutborders
 
 import io.flutter.embedding.android.FlutterActivity
 
