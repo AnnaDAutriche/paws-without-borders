@@ -1,4 +1,4 @@
-package package com.anna.pawswithoutborders
+package com.anna.pawswithoutborders
 
 import io.flutter.embedding.android.FlutterActivity
 
