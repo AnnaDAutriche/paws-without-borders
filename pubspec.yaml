@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
   cupertino_icons: ^1.0.8
   google_fonts: ^6.1.0
   provider: ^6.1.2
@@ -18,6 +19,11 @@ dependencies:
   cached_network_image: ^3.0.0
   image: ^4.0.0
   image_picker: ">=1.1.2"
+
+  firebase_core: ^4.6.0
+  firebase_auth: ">=5.3.3"
+  cloud_firestore: ">=5.5.0"
+  firebase_storage: ^13.0.0
 
 dev_dependencies:
   flutter_test:
