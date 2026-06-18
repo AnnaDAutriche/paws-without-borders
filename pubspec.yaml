@@ -7,12 +7,6 @@ environment:
   sdk: ^3.6.0
 
 dependencies:
-  image: ^4.0.0
-  cached_network_image: ^3.0.0
-  image_picker: '>=1.1.2'
-  firebase_storage: ^13.0.0
-  cloud_firestore: '>=5.5.0'
-  firebase_auth: '>=5.3.3'
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
@@ -21,7 +15,9 @@ dependencies:
   go_router: ^16.2.0
   shared_preferences: ^2.0.0
   url_launcher: ^6.0.0
-  firebase_core: ^4.6.0
+  cached_network_image: ^3.0.0
+  image: ^4.0.0
+  image_picker: ">=1.1.2"
 
 dev_dependencies:
   flutter_test:
@@ -38,7 +34,5 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  # Single source icon used for both Android + iOS.
-  # (Recommended: 1024x1024 PNG)
   image_path: assets/images/Designer.png
   remove_alpha_ios: true
