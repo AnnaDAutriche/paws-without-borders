@@ -9,7 +9,7 @@ class LanguageProvider with ChangeNotifier {
 
   final Map<String, Map<String, String>> _translations = {
     'English': {
-      'appTitle': 'Paws Without Borders',
+      'appTitle': 'Paws New Home',
       'appSubtitle': 'Find your forever friend',
       'shelters': 'Shelters',
       'animals': 'Animals',
@@ -64,7 +64,7 @@ class LanguageProvider with ChangeNotifier {
       'donateNow': 'Donate Now',
     },
     'German': {
-      'appTitle': 'Paws Without Borders',
+      'appTitle': 'Paws New Home',
       'appSubtitle': 'Finde deinen Freund fürs Leben',
       'shelters': 'Tierheime',
       'animals': 'Tiere',
@@ -119,7 +119,7 @@ class LanguageProvider with ChangeNotifier {
       'donateNow': 'Jetzt spenden',
     },
     'Ukrainian': {
-      'appTitle': 'Paws Without Borders',
+      'appTitle': 'Paws New Home',
       'appSubtitle': 'Знайди свого друга назавжди',
       'shelters': 'Притулки',
       'animals': 'Тварини',
@@ -174,7 +174,7 @@ class LanguageProvider with ChangeNotifier {
       'donateNow': 'Пожертвувати зараз',
     },
     'Russian': {
-      'appTitle': 'Paws Without Borders',
+      'appTitle': 'Paws New Home',
       'appSubtitle': 'Найди своего друга навсегда',
       'shelters': 'Приюты',
       'animals': 'Животные',
