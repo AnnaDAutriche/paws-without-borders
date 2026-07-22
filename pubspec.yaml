@@ -1,7 +1,7 @@
 name: paws_without_borders
 description: "Paws New Home - connecting you with animal shelters and their adorable residents, designed with a clean, elegant interface to help furry friends find their forever homes."
 publish_to: "none"
-version: 1.0.0+4
+version: 1.0.0+5
 
 environment:
   sdk: ^3.6.0
