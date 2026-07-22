@@ -1,30 +1,24 @@
 plugins {
     id "com.android.application"
-    id "com.google.gms.google-services"
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
 }
-
 def keystoreProperties = new Properties()
 def keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
-
 android {
     namespace = "com.anna.pawswithoutborders"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "28.2.13676358"
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-
     kotlinOptions {
         jvmTarget = "11"
     }
-
     signingConfigs {
         release {
             if (keystorePropertiesFile.exists()) {
@@ -35,7 +29,6 @@ android {
             }
         }
     }
-
     defaultConfig {
         applicationId "com.anna.pawswithoutborders"
         minSdk = 21
@@ -43,7 +36,6 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
-
     buildTypes {
         release {
             signingConfig signingConfigs.release
@@ -52,7 +44,6 @@ android {
         }
     }
 }
-
 flutter {
     source = "../.."
 }
