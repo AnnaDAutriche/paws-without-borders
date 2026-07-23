@@ -36,6 +36,7 @@ class _SheltersListScreenState extends State<SheltersListScreen> {
   @override
   Widget build(BuildContext context) {
     final lang = Provider.of<LanguageProvider>(context);
+    final auth = context.watch<AuthProvider>();
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -48,7 +49,8 @@ class _SheltersListScreenState extends State<SheltersListScreen> {
               stream: _animalService.watchAllAnimals(),
               builder: (context, animalsSnap) {
                 final totalAnimals = animalsSnap.data?.length ?? 0;
-                final isLoading = shelterSnap.connectionState == ConnectionState.waiting || animalsSnap.connectionState == ConnectionState.waiting;
+                final isLoading = shelterSnap.connectionState == ConnectionState.waiting ||
+                    animalsSnap.connectionState == ConnectionState.waiting;
 
                 if (isLoading && shelters.isEmpty) {
                   return const Center(child: CircularProgressIndicator());
@@ -231,6 +233,43 @@ class _SheltersListScreenState extends State<SheltersListScreen> {
                             children: [
                               SupportAppCard(onTap: _openSupportLink),
                               const SizedBox(height: AppSpacing.lg),
+                              // Admin-only pending shelters section
+                              if (auth.isAdmin)
+                                StreamBuilder<List<Shelter>>(
+                                  stream: _shelterService.watchPendingShelters(),
+                                  builder: (context, pendingSnap) {
+                                    final pending = pendingSnap.data ?? const <Shelter>[];
+                                    if (pending.isEmpty) return const SizedBox.shrink();
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                          decoration: BoxDecoration(
+                                            color: Colors.orange.withValues(alpha: 0.10),
+                                            borderRadius: BorderRadius.circular(AppRadius.lg),
+                                            border: Border.all(color: Colors.orange.withValues(alpha: 0.30)),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              const Icon(Icons.hourglass_top_rounded, color: Colors.orange, size: 18),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                '${pending.length} shelter${pending.length == 1 ? '' : 's'} pending approval',
+                                                style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.orange[800]),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(height: AppSpacing.md),
+                                        ...pending.map((shelter) => _PendingShelterCard(shelter: shelter)),
+                                        const SizedBox(height: AppSpacing.lg),
+                                        Divider(color: Theme.of(context).colorScheme.outline),
+                                        const SizedBox(height: AppSpacing.lg),
+                                      ],
+                                    );
+                                  },
+                                ),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
@@ -272,6 +311,42 @@ class _SheltersListScreenState extends State<SheltersListScreen> {
         },
         icon: const Icon(Icons.add),
         label: Text(lang.translate('registerShelter')),
+      ),
+    );
+  }
+}
+
+class _PendingShelterCard extends StatelessWidget {
+  final Shelter shelter;
+  const _PendingShelterCard({required this.shelter});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.40)),
+      ),
+      child: ListTile(
+        contentPadding: AppSpacing.paddingMd,
+        leading: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: Colors.orange.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
+          child: const Icon(Icons.storefront_rounded, color: Colors.orange),
+        ),
+        title: Text(shelter.name, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+        subtitle: Text(shelter.location, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.lightSecondaryText)),
+        trailing: ElevatedButton(
+          onPressed: () => context.push('/admin/shelter/${shelter.id}/edit'),
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+          child: const Text('Review', style: TextStyle(color: Colors.white)),
+        ),
       ),
     );
   }
@@ -342,7 +417,7 @@ class LanguageSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final lang = Provider.of<LanguageProvider>(context, listen: false);
-    
+
     return Container(
       width: 140,
       height: 40,
@@ -441,8 +516,6 @@ class ShelterCard extends StatelessWidget {
                   left: 12,
                   child: Consumer<AuthProvider>(
                     builder: (context, auth, _) {
-                      // Client-side UI gate only (NOT a security boundary).
-                      // Real access control must be enforced with Firestore/Storage rules.
                       if (!auth.isAdmin) return const SizedBox.shrink();
                       return Container(
                         width: 36,
@@ -558,7 +631,7 @@ class SupportAppCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Support Paws Without Borders',
+                    'Support Paws New Home',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
