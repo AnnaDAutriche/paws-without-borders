@@ -28,6 +28,7 @@ class _ShelterDashboardScreenState extends State<ShelterDashboardScreen> {
   bool _loading = true;
   Shelter? _shelter;
   bool _saving = false;
+  bool _deleting = false;
 
   final _name = TextEditingController();
   final _location = TextEditingController();
@@ -119,6 +120,31 @@ class _ShelterDashboardScreenState extends State<ShelterDashboardScreen> {
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved')));
   }
 
+  Future<void> _deleteShelter() async {
+    final shelter = _shelter;
+    if (shelter == null) return;
+
+    final ok = await showModalBottomSheet<bool>(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      builder: (context) => const _ConfirmSheet(
+        title: 'Delete shelter?',
+        subtitle: 'Your shelter and all its data will be removed from the public listing. This cannot be undone.',
+      ),
+    );
+    if (ok != true) return;
+
+    setState(() => _deleting = true);
+    await _shelterService.deleteShelter(shelter.id);
+    if (!mounted) return;
+    setState(() {
+      _shelter = null;
+      _deleting = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Shelter deleted.')));
+  }
+
   Future<void> _seedSampleData() async {
     if (!kDebugMode) {
       debugPrint('Seed sample data blocked: not in debug mode.');
@@ -135,8 +161,6 @@ class _ShelterDashboardScreenState extends State<ShelterDashboardScreen> {
       await _seedService.seedForUser(uid: auth.uid, email: email);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sample data added.')));
-
-      // Refresh local dashboard state so the seeded shelter/animals appear immediately.
       await _load();
     } catch (e) {
       if (!mounted) return;
@@ -151,7 +175,7 @@ class _ShelterDashboardScreenState extends State<ShelterDashboardScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
-        child: _loading
+        child: _loading || _deleting
             ? const Center(child: CircularProgressIndicator())
             : Column(
                 children: [
@@ -179,13 +203,17 @@ class _ShelterDashboardScreenState extends State<ShelterDashboardScreen> {
                             ],
                           ),
                         ),
-                        // Client-side UI gate only (NOT a security boundary).
-                        // Real access control must be enforced with Firestore/Storage rules.
                         if (kDebugMode && auth.isAdmin)
                           IconButton(
                             tooltip: 'Seed sample data',
                             onPressed: _seedSampleData,
                             icon: Icon(Icons.auto_awesome_rounded, color: Theme.of(context).colorScheme.primary),
+                          ),
+                        if (_shelter != null)
+                          IconButton(
+                            tooltip: 'Delete shelter',
+                            onPressed: _deleteShelter,
+                            icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
                           ),
                         TextButton.icon(
                           onPressed: () async {
@@ -319,8 +347,8 @@ class _ProfileTabState extends State<_ProfileTab> {
 
     final len = await picked.length();
     if (!mounted) return;
-    if (len > 1024 * 1024) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Image too large (max 1MB).')));
+    if (len > 1024 * 1024 * 2) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Image too large (max 2MB).')));
       return;
     }
 
@@ -507,7 +535,7 @@ class _ShelterDashboardImageCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  '1 photo max • 1MB limit',
+                  '1 photo max • 2MB limit',
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.lightPrimaryText, fontWeight: FontWeight.w600),
                 ),
               ),
@@ -547,7 +575,7 @@ class _AnimalsTab extends StatelessWidget {
                 child: Padding(
                   padding: AppSpacing.paddingLg,
                   child: Text(
-                    'No animals yet. Tap “Add animal” to create the first one.',
+                    'No animals yet. Tap "Add animal" to create the first one.',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.lightSecondaryText),
                     textAlign: TextAlign.center,
                   ),
@@ -641,7 +669,7 @@ class _AnimalManageCard extends StatelessWidget {
                     context: context,
                     showDragHandle: true,
                     backgroundColor: Theme.of(context).colorScheme.surface,
-                    builder: (context) => _ConfirmSheet(title: 'Delete animal?', subtitle: 'This can\'t be undone.'),
+                    builder: (context) => const _ConfirmSheet(title: 'Delete animal?', subtitle: 'This can\'t be undone.'),
                   );
                   if (ok == true) onDelete();
                 },
