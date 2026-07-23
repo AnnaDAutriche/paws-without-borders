@@ -53,21 +53,31 @@ class ShelterService {
   }
 
   /// Public stream of shelters (hides removed/suspended).
-  Stream<List<Shelter>> watchShelters() => _col.orderBy('created_at', descending: true).snapshots().map(
-        (snap) => snap.docs
-            .where((d) => _isPublicShelterData(d.data()))
-            .map(_fromDoc)
-            .toList(),
-      );
+Stream<List<Shelter>> watchShelters() => _col
+    .orderBy('created_at', descending: true)
+    .snapshots()
+    .map(
+      (snap) => snap.docs
+          .where((d) => _isPublicShelterData(d.data()))
+          .map(_fromDoc)
+          .toList(),
+    );
 
-  /// Public watch by id (returns null for removed/suspended).
-  Stream<Shelter?> watchShelterById(String id) => _col.doc(id).snapshots().map((doc) {
-        if (!doc.exists) return null;
-        final data = doc.data() ?? const <String, dynamic>{};
-        if (!_isPublicShelterData(data)) return null;
-        return _fromDoc(doc);
-      });
+/// Admin only: pending shelters waiting for approval.
+Stream<List<Shelter>> watchPendingShelters() => _col
+    .where('status', isEqualTo: 'pending')
+    .snapshots()
+    .map(
+      (snap) => snap.docs.map(_fromDoc).toList(),
+    );
 
+/// Public watch by id (returns null for removed/suspended).
+Stream<Shelter?> watchShelterById(String id) => _col.doc(id).snapshots().map((doc) {
+      if (!doc.exists) return null;
+      final data = doc.data() ?? const <String, dynamic>{};
+      if (!_isPublicShelterData(data)) return null;
+      return _fromDoc(doc);
+    });
   Future<List<Shelter>> getShelters() async {
     try {
       final snap = await _col.orderBy('created_at', descending: true).get();
