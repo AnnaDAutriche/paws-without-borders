@@ -111,8 +111,8 @@ class _AdminShelterEditorScreenState extends State<AdminShelterEditorScreen> {
 
     final len = await picked.length();
     if (!mounted) return;
-    if (len > 1024 * 1024) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Image too large (max 1MB).')));
+    if (len > 1024 * 1024 * 2) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Image too large (max 2MB).')));
       return;
     }
 
@@ -138,12 +138,38 @@ class _AdminShelterEditorScreenState extends State<AdminShelterEditorScreen> {
     }
   }
 
+  Future<void> _approveShelter() async {
+    final shelter = _shelter;
+    if (shelter == null) return;
+    setState(() => _saving = true);
+    final updated = shelter.copyWith(status: 'active', updatedAt: DateTime.now());
+    await _shelterService.updateShelter(updated);
+    if (!mounted) return;
+    setState(() {
+      _shelter = updated;
+      _saving = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Shelter approved and now visible to public.')));
+  }
+
+  Future<void> _suspendShelter() async {
+    final shelter = _shelter;
+    if (shelter == null) return;
+    setState(() => _saving = true);
+    final updated = shelter.copyWith(status: 'suspended', updatedAt: DateTime.now());
+    await _shelterService.updateShelter(updated);
+    if (!mounted) return;
+    setState(() {
+      _shelter = updated;
+      _saving = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Shelter suspended.')));
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
 
-    // Client-side UI gate only (NOT a security boundary).
-    // Real access control must be enforced with Firestore/Storage rules.
     if (!auth.isAdmin) {
       return Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -165,6 +191,10 @@ class _AdminShelterEditorScreenState extends State<AdminShelterEditorScreen> {
       );
     }
 
+    final shelter = _shelter;
+    final isPending = shelter?.status == 'pending';
+    final isSuspended = shelter?.status == 'suspended';
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
@@ -183,11 +213,66 @@ class _AdminShelterEditorScreenState extends State<AdminShelterEditorScreen> {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text('Edit shelter', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Edit shelter', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                              if (isPending)
+                                Container(
+                                  margin: const EdgeInsets.only(top: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                  child: Text('Pending approval', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.orange)),
+                                )
+                              else if (isSuspended)
+                                Container(
+                                  margin: const EdgeInsets.only(top: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                  child: Text('Suspended', style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.red)),
+                                ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
                   ),
+                  if (isPending || isSuspended)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: ElevatedButton.icon(
+                          onPressed: _saving ? null : _approveShelter,
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                          icon: const Icon(Icons.check_circle_outline_rounded, color: Colors.white),
+                          label: const Text('Approve & make public', style: TextStyle(color: Colors.white)),
+                        ),
+                      ),
+                    ),
+                  if (shelter != null && shelter.status == 'active')
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: OutlinedButton.icon(
+                          onPressed: _saving ? null : _suspendShelter,
+                          style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: const BorderSide(color: Colors.red)),
+                          icon: const Icon(Icons.block_rounded),
+                          label: const Text('Suspend shelter'),
+                        ),
+                      ),
+                    ),
+                  if (isPending || isSuspended || (shelter != null && shelter.status == 'active'))
+                    const SizedBox(height: AppSpacing.md),
                   Expanded(
                     child: SingleChildScrollView(
                       padding: AppSpacing.paddingLg,
@@ -310,7 +395,7 @@ class _AdminShelterImageCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  '1 photo max • 1MB limit',
+                  '1 photo max • 2MB limit',
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.lightPrimaryText, fontWeight: FontWeight.w600),
                 ),
               ),
