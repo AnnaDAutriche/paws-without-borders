@@ -7,13 +7,13 @@ import 'package:image/image.dart' as img;
 /// images before upload.
 ///
 /// Rules enforced:
-/// - Reject if original file size > 1MB
+/// - Reject if original file size > 2MB
 /// - Resize to max width 1200px
 /// - Default JPEG quality 70%
 /// - Ensure output is <= 500KB (adaptive quality + downscale fallback)
 class ImageUploadOptimizer {
-  static const int maxOriginalBytes = 1024 * 1024; // 1MB
-  static const int maxOutputBytes = 500 * 1024; // 500KB
+  static const int maxOriginalBytes = 1024 * 1024*2; // 2MB
+  static const int maxOutputBytes = 1024 * 1024; // 1MB
   static const int maxWidth = 1200;
   static const int defaultQuality = 70;
 
