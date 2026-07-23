@@ -59,10 +59,9 @@ class _ShelterRegistrationScreenState extends State<ShelterRegistrationScreen> {
       final now = DateTime.now();
       final shelterId = DateTime.now().millisecondsSinceEpoch.toString();
 
-      // Create shelter first so Storage rules can validate ownership (if configured that way).
-      // Then upload/update image_url.
       var shelter = Shelter(
         id: shelterId,
+        status: 'pending',
         name: _nameController.text.trim(),
         location: _locationController.text.trim(),
         description: _descriptionController.text.trim(),
@@ -84,8 +83,8 @@ class _ShelterRegistrationScreenState extends State<ShelterRegistrationScreen> {
 
       if (_pickedImage != null) {
         final bytes = await _pickedImage!.readAsBytes();
-        if (bytes.lengthInBytes > 1024 * 1024) {
-          throw const ShelterImagePickFailure('Image too large (max 1MB).');
+        if (bytes.lengthInBytes > 1024 * 1024 * 2) {
+          throw const ShelterImagePickFailure('Image too large (max 2MB).');
         }
         final imageUrl = await _shelterService.uploadShelterImage(shelterId: shelterId, file: _pickedImage!);
         shelter = shelter.copyWith(imageUrl: imageUrl, galleryImages: [imageUrl], updatedAt: DateTime.now());
@@ -94,7 +93,9 @@ class _ShelterRegistrationScreenState extends State<ShelterRegistrationScreen> {
 
       if (!mounted) return;
       context.pop();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Shelter registered successfully!')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registration submitted! Your shelter is pending approval and will appear publicly once reviewed.')),
+      );
     } catch (e) {
       if (!mounted) return;
       final msg = switch (e) {
@@ -113,11 +114,10 @@ class _ShelterRegistrationScreenState extends State<ShelterRegistrationScreen> {
     if (!mounted) return;
     if (picked == null) return;
 
-    // Pre-validate file size (1MB) before any upload.
     final len = await picked.length();
     if (!mounted) return;
-    if (len > 1024 * 1024) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Image too large (max 1MB).')));
+    if (len > 1024 * 1024 * 2) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Image too large (max 2MB).')));
       return;
     }
 
@@ -127,7 +127,7 @@ class _ShelterRegistrationScreenState extends State<ShelterRegistrationScreen> {
   @override
   Widget build(BuildContext context) {
     final lang = Provider.of<LanguageProvider>(context);
-    
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
@@ -188,10 +188,31 @@ class _ShelterRegistrationScreenState extends State<ShelterRegistrationScreen> {
                             Icon(Icons.info_outline_rounded, color: Theme.of(context).colorScheme.primary, size: 24),
                             Expanded(
                               child: Text(
-                                'Join our network of rescuers. Fill out the details below to list your shelter on Paws Without Borders.',
+                                'Join our network of rescuers. Fill out the details below to list your shelter on Paws New Home.',
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   color: AppColors.lightPrimaryText,
                                 ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: AppSpacing.paddingMd,
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withValues(alpha: 0.10),
+                          borderRadius: BorderRadius.circular(AppRadius.lg),
+                          border: Border.all(color: Colors.orange.withValues(alpha: 0.30)),
+                        ),
+                        child: Row(
+                          spacing: AppSpacing.sm,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.hourglass_top_rounded, color: Colors.orange, size: 20),
+                            Expanded(
+                              child: Text(
+                                'After submission, your shelter will be reviewed before appearing publicly. You will be able to see it in your dashboard.',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.orange[800]),
                               ),
                             ),
                           ],
@@ -402,7 +423,7 @@ class _ShelterImagePickerCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  '1 photo max • 1MB limit',
+                  '1 photo max • 2MB limit',
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.lightPrimaryText, fontWeight: FontWeight.w600),
                 ),
               ),
