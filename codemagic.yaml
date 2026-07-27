@@ -10,7 +10,7 @@ workflows:
         distribution_type: app_store
         bundle_identifier: com.anna.pawswithoutborders
       flutter: stable
-      xcode: latest
+      xcode: 16.3
       cocoapods: default
     scripts:
       - name: Set up keychain
