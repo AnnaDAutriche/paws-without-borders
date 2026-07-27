@@ -9,28 +9,16 @@ workflows:
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.anna.pawswithoutborders
-      vars:
-        APP_STORE_CONNECT_KEY_IDENTIFIER: V8XP3UYRPK
-        APP_STORE_CONNECT_ISSUER_ID: 5300fe45-7ccf-4ac0-acce-d0e6ca9fe77c
-        APP_STORE_CONNECT_PRIVATE_KEY: LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR1RBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJIa3dkd0lCQVFRZ0dNOHRpVmpoM3VTS1dyb1IKRnBXdFVsTG15MGlydVlzQjFQaWJYVFBZYnhPZ0NnWUlLb1pJemowREFRZWhSQU5DQUFSclp5TmUvYnNkUU5EWgpCRWJEVjNiSERHRnFvU2Fxc0hMbHVDcW02d3dqRFF0QWxiR0hjWFhYZGY1b09BN0FYSm9IVEYxMDJxdFRjZHhhCmt5M2pSMWR1Ci0tLS0tRU5EIFBSSVZBVEUgS0VZLS0tLS0=
-        BUNDLE_ID: com.anna.pawswithoutborders
-        XCODE_WORKSPACE: ios/Runner.xcworkspace
-        XCODE_SCHEME: Runner
       flutter: stable
       xcode: latest
       cocoapods: default
     scripts:
       - name: Set up keychain
         script: keychain initialize
-      - name: Fetch signing files
+      - name: Set up code signing
         script: |
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_STORE \
-            --create
-      - name: Use signing files
-        script: keychain add-certificates
-      - name: Set up code signing settings
-        script: xcode-project use-profiles
+          keychain add-certificates
+          xcode-project use-profiles
       - name: Install dependencies
         script: flutter pub get
       - name: Generate launcher icons
