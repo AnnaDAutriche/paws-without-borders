@@ -37,19 +37,10 @@ workflows:
       - name: Build iOS
         script: |
           flutter build ios --release --no-codesign
-          cd ios
-          xcodebuild \
-            -workspace Runner.xcworkspace \
-            -scheme Runner \
-            -sdk iphoneos \
-            -configuration Release \
-            archive \
-            -archivePath "$CM_BUILD_DIR/Runner.xcarchive" \
-            OTHER_CODE_SIGN_FLAGS="--keychain=$HOME/Library/Keychains/login.keychain-db"
 
-- name: Export IPA
-script: |
-xcode-project build-ipa
+      - name: Export IPA
+        script: |
+          xcode-project build-ipa
 
     artifacts:
       - build/ios/ipa/*.ipa
