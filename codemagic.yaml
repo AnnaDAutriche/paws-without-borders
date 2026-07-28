@@ -3,8 +3,10 @@ workflows:
     name: iOS Release
     max_build_duration: 120
     instance_type: mac_mini_m2
+
     integrations:
       app_store_connect: Paws New Home
+
     environment:
       ios_signing:
         distribution_type: app_store
@@ -12,23 +14,31 @@ workflows:
       flutter: stable
       xcode: 16.3
       cocoapods: default
+
     scripts:
       - name: Set up keychain
-        script: keychain initialize
+        script: |
+          keychain initialize
+
       - name: Set up code signing
         script: |
           keychain add-certificates
           xcode-project use-profiles
-- name: Install dependencies
-script: |
-flutter clean
-flutter pub get
+
+      - name: Install dependencies
+        script: |
+          flutter clean
+          flutter pub get
+
       - name: Generate launcher icons
-        script: flutter pub run flutter_launcher_icons
+        script: |
+          flutter pub run flutter_launcher_icons
+
       - name: Build iOS
         script: |
           flutter build ios --release --no-codesign
-          cd ios && xcodebuild \
+          cd ios
+          xcodebuild \
             -workspace Runner.xcworkspace \
             -scheme Runner \
             -sdk iphoneos \
@@ -36,13 +46,16 @@ flutter pub get
             archive \
             -archivePath "$CM_BUILD_DIR/Runner.xcarchive" \
             OTHER_CODE_SIGN_FLAGS="--keychain=$HOME/Library/Keychains/login.keychain-db"
+
       - name: Export IPA
         script: |
           xcode-project build-ipa \
             --archive-path "$CM_BUILD_DIR/Runner.xcarchive"
+
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
+
     publishing:
       app_store_connect:
         auth: integration
