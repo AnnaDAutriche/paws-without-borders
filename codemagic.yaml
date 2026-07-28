@@ -19,10 +19,10 @@ workflows:
         script: |
           keychain add-certificates
           xcode-project use-profiles
-      - name: Install dependencies
-        script: |
-          flutter pub get
-          flutter pub upgrade cloud_firestore
+- name: Install dependencies
+script: |
+flutter clean
+flutter pub get
       - name: Generate launcher icons
         script: flutter pub run flutter_launcher_icons
       - name: Build iOS
