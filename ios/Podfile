@@ -1,7 +1,4 @@
 platform :ios, '15.0'
-# Explicitly set the minimum iOS deployment target.
-# Firebase (cloud_firestore) requires iOS 15+.
-# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 project 'Runner', {
   'Debug' => :debug,
@@ -25,6 +22,7 @@ target 'Runner' do
   platform :ios, '15.0'
   use_frameworks! :linkage => :static
   use_modular_headers!
+  pod 'FirebaseFirestore', :git => 'https://github.com/invertase/firestore-ios-sdk-frameworks.git', :tag => '11.6.0'
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do
     inherit! :search_paths
