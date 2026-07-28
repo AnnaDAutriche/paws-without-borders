@@ -37,7 +37,6 @@ workflows:
       - name: Export IPA
         script: |
           xcode-project build-ipa \
-            --workspace "$CM_BUILD_DIR/Runner.xcarchive" \
             --archive-path "$CM_BUILD_DIR/Runner.xcarchive"
     artifacts:
       - build/ios/ipa/*.ipa
