@@ -47,10 +47,9 @@ workflows:
             -archivePath "$CM_BUILD_DIR/Runner.xcarchive" \
             OTHER_CODE_SIGN_FLAGS="--keychain=$HOME/Library/Keychains/login.keychain-db"
 
-      - name: Export IPA
-        script: |
-          xcode-project build-ipa \
-            --archive-path "$CM_BUILD_DIR/Runner.xcarchive"
+- name: Export IPA
+script: |
+xcode-project build-ipa
 
     artifacts:
       - build/ios/ipa/*.ipa
