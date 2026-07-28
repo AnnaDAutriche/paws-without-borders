@@ -20,8 +20,6 @@ workflows:
           keychain add-certificates
           xcode-project use-profiles
       - name: Install dependencies
-        script: flutter pub get
-              - name: Install dependencies
         script: |
           flutter pub get
           flutter pub upgrade cloud_firestore
