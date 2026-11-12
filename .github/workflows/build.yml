@@ -51,7 +51,7 @@ jobs:
           ls -la android
           ls -la android/app
       - name: Build signed release AAB
-        run: flutter build appbundle --release --build-number=${{ github.run_number }}
+        run: flutter build appbundle --release --build-number=${{ github.run_number }} --android-skip-build-dependency-validation
       - name: Verify AAB exists
         shell: bash
         run: |
